@@ -24,4 +24,4 @@ jobs:
           curl -X POST -H "Accept: application/vnd.github.everest-preview+json" \
                -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
                --data '{"event_type": "trigger-automation"}' \
-               https://github.com/Indra512/PlaywrightCucumberJavaScript/dispatches
+               https://github.com/Indra512/PlaywrightCucumberJavaScript/
