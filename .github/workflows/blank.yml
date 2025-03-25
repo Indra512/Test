@@ -22,6 +22,6 @@ jobs:
       - name: Trigger Automation Tests
         run: |
           curl -X POST -H "Accept: application/vnd.github.everest-preview+json" \
-               -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
-               --data '{"event_type": "trigger-automation"}' \
-               https://github.com/Indra512/PlaywrightCucumberJavaScript/
+           -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+           --data '{"event_type": "trigger-automation"}' \
+           https://api.github.com/repos/Indra512/PlaywrightCucumberJavaScript/dispatches
