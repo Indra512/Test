@@ -37,3 +37,40 @@ jobs:
           fi
 
           echo "Automation workflow triggered successfully."
+
+      - name: Get Latest Workflow Run ID
+        id: get-workflow-id
+        run: |
+          run_id=$(curl -s -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+                  "https://api.github.com/repos/Indra512/PlaywrightCucumberJavaScript/actions/runs" | \
+                  jq -r '.workflow_runs[0].id')
+          echo "Latest Workflow Run ID: $run_id"
+          echo "workflow_id=$run_id" >> $GITHUB_ENV
+
+      - name: Wait for Automation Workflow to Complete
+        run: |
+          echo "Checking automation workflow status..."
+          while true; do
+            status=$(curl -s -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+                    "https://api.github.com/repos/Indra512/PlaywrightCucumberJavaScript/actions/runs/${{ env.workflow_id }}" | \
+                    jq -r '.status')
+
+            echo "Current automation workflow status: $status"
+
+            if [[ "$status" == "completed" ]]; then
+              conclusion=$(curl -s -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+                          "https://api.github.com/repos/Indra512/PlaywrightCucumberJavaScript/actions/runs/${{ env.workflow_id }}" | \
+                          jq -r '.conclusion')
+
+              if [[ "$conclusion" == "success" ]]; then
+                echo "Automation workflow completed successfully."
+                exit 0
+              else
+                echo "Automation workflow failed."
+                exit 1
+              fi
+            fi
+
+            echo "Waiting for 30 seconds before checking again..."
+            sleep 30
+          done
