@@ -1,9 +1,8 @@
 name: Build and Deploy
 
 on:
-  push:
-    branches:
-      - main  # Adjust as needed
+  repository_dispatch:
+    types: [automation-success, automation-failure]
 
 jobs:
   build:
@@ -20,7 +19,6 @@ jobs:
           sleep 5s
 
       - name: Trigger Automation Tests
-        shell: bash
         run: |
           echo "Triggering automation workflow..."
           
@@ -35,42 +33,19 @@ jobs:
             echo "Failed to trigger automation workflow! Received status code: $status_code"
             exit 1
           fi
-
           echo "Automation workflow triggered successfully."
+          
+          jobs:
+          finalize-build:
+          runs-on: ubuntu-latest
 
-      - name: Get Latest Workflow Run ID
-        id: get-workflow-id
-        run: |
-          run_id=$(curl -s -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
-                  "https://api.github.com/repos/Indra512/PlaywrightCucumberJavaScript/actions/runs" | \
-                  jq -r '.workflow_runs[0].id')
-          echo "Latest Workflow Run ID: $run_id"
-          echo "workflow_id=$run_id" >> $GITHUB_ENV
-
-      - name: Wait for Automation Workflow to Complete
-        run: |
-          echo "Checking automation workflow status..."
-          while true; do
-            status=$(curl -s -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
-                    "https://api.github.com/repos/Indra512/PlaywrightCucumberJavaScript/actions/runs/${{ env.workflow_id }}" | \
-                    jq -r '.status')
-
-            echo "Current automation workflow status: $status"
-
-            if [[ "$status" == "completed" ]]; then
-              conclusion=$(curl -s -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
-                          "https://api.github.com/repos/Indra512/PlaywrightCucumberJavaScript/actions/runs/${{ env.workflow_id }}" | \
-                          jq -r '.conclusion')
-
-              if [[ "$conclusion" == "success" ]]; then
-                echo "Automation workflow completed successfully."
+          steps:
+            - name: Check Automation Result
+              run: |
+              if [[ "${{ github.event.action }}" == "automation-success" ]]; then
+                echo "Automation tests passed!"
                 exit 0
-              else
-                echo "Automation workflow failed."
+            else
+                echo "Automation tests failed!"
                 exit 1
-              fi
             fi
-
-            echo "Waiting for 30 seconds before checking again..."
-            sleep 30
-          done
