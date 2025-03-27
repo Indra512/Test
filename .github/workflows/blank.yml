@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - main
-  repository_dispatch:
-    types: 
-      - automation-success
-      - automation-failure
+  workflow_run:
+    workflows: ["Automation Workflow"]  # Runs when "Automation Workflow" completes
+    types:
+      - completed
 
 jobs:
   build:
@@ -43,12 +43,13 @@ jobs:
           
   wait-for-automation:
     runs-on: ubuntu-latest
-    if: github.event_name == 'repository_dispatch'  # Runs only when triggered by repository_dispatch
+    if: github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure'
+    needs: build  # Runs after build job
 
     steps:
       - name: Check Automation Result
         run: |
-          if [[ "${{ github.event.action }}" == "automation-success" ]]; then
+          if [[ "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
             echo "Automation tests passed!"
             exit 0
           else
