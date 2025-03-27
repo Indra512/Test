@@ -21,13 +21,20 @@ jobs:
 
       - name: Trigger Automation Tests
         run: |
+          echo "Triggering automation workflow..."
+          
           response = $(curl -X POST -H "Accept: application/vnd.github.everest-preview+json" \
            -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+           -H "Content-Type: application/json" \
            --data '{"event_type": "trigger-automation"}' \
            https://api.github.com/repos/Indra512/PlaywrightCucumberJavaScript/dispatches)
+
+           echo "Response from GitHub API: $response"
            
-           if [[ "$response" == "" ]]; then
+           if [[ -z "$response" ]]; then
             echo "Failed to trigger automation workflow!"
             exit 1
           fi
-            echo "Automation workflow triggered successfully."
+
+          echo "Automation workflow triggered successfully."
+        shell: bash
