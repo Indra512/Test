@@ -20,18 +20,20 @@ jobs:
           sleep 5s
 
       - name: Trigger Automation Tests
+        shell: bash
         run: |
           echo "Triggering automation workflow..."
           
-          response=$(curl -v -X POST -H "Accept: application/vnd.github.everest-preview+json" \
+          status_code=$(curl -o /dev/null -s -w "%{http_code}\n" -X POST -H "Accept: application/vnd.github.everest-preview+json" \
            -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
            --data '{"event_type": "trigger-automation"}' \
            https://api.github.com/repos/Indra512/PlaywrightCucumberJavaScript/dispatches)
 
-           echo "Response from GitHub API: $response"
+           echo "GitHub API Response Status Code: $status_code"
            
-           if [[ "$response" == "" ]]; then
-            echo "Failed to trigger automation workflow!"
+           if [ "$status_code" -ne 204 ]; then
+            echo "Failed to trigger automation workflow! Received status code: $status_code"
             exit 1
           fi
-           echo "Automation workflow triggered successfully."
+
+          echo "Automation workflow triggered successfully."
