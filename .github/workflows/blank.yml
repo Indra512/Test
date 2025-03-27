@@ -20,11 +20,10 @@ jobs:
           sleep 5s
 
       - name: Trigger Automation Tests
-        shell: bash
         run: |
           echo "Triggering automation workflow..."
           
-          response=$(curl -s -X POST -H "Accept: application/vnd.github.everest-preview+json" \
+          response=$(curl -X POST -H "Accept: application/vnd.github.everest-preview+json" \
            -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
            -H "Content-Type: application/json" \
            --data '{"event_type": "trigger-automation"}' \
@@ -32,9 +31,8 @@ jobs:
 
            echo "Response from GitHub API: $response"
            
-           if [[ -z "$response" ]]; then
+           if [[ "$response" == "" ]]; then
             echo "Failed to trigger automation workflow!"
             exit 1
           fi
-
-          echo "Automation workflow triggered successfully."
+           echo "Automation workflow triggered successfully."
